@@ -1,0 +1,159 @@
+﻿@{
+    ViewData["Title"] = "CSW Servisleri üzerinden Metaveri Sorgulama";
+}
+
+    <div class="row  font-weight-bolder">
+       <h3 class="text-center" style="width:100%;margin-bottom:20px;">Metaveri Sorgulama İşlemi</h3>
+    </div>
+<div class="row">
+    <div class="searchTypeContent">
+        <div class="searchTypeOption">
+            <input type="radio" name="searchType" checked value="searchByKeyword" class="searchType" /> Anahtar Kelime ile Arama
+        </div>
+        <div class="searchTypeOption">
+            <input type="radio" name="searchType" value="searchByID" class="searchType" /> Metaveri ID'si ile Arama
+        </div>
+    </div>
+</div>
+
+<div class="searchTxtContent">
+    <div class="searchByKeyword searchRow">
+        <div class="searchTypeOption">
+            Anahtar Kelime
+        </div>
+        <div class="searchTypeOption">
+            <input type="text" id="txtKeyword" class="form-control" />
+        </div>
+    </div>
+    <div class="searchByID searchRow">
+        <div class="searchTypeOption">
+            Metaveri ID'si
+        </div>
+        <div class="searchTypeOption">
+            <input type="text" id="txtMetadataId" class="form-control" />
+        </div>
+    </div>
+</div>
+<div class="searchAuthContent">
+    <div class="searchRow">
+        <div class="searchTypeOption">
+            Kulanıcı Adı
+        </div>
+        <div class="searchTypeOption">
+            <input type="text" id="txtUserName" class="form-control" />
+        </div>
+    </div>
+    <div class="searchRow">
+        <div class="searchTypeOption">
+            Şifre
+        </div>
+        <div class="searchTypeOption">
+            <input type="password" id="txtPassword" class="form-control" />
+        </div>
+    </div>
+</div>
+<div class="searchAuthContent">
+    <div class="searchRow">
+        <div class="searchTypeOption">
+            CSW Servis Adresi
+        </div>
+        <div class="searchTypeOption">
+            <input type="text" id="txtServiceUrl" class="form-control" />
+        </div>
+    </div>
+    
+</div>
+<div class="searchAuthContent">
+    <div class="searchRow">
+        <div class="searchTypeOption">
+           
+        </div>
+        <div class="searchTypeOption">
+            <input type="button" class="btn btn-success" value="Sorgula" id="btnSearch"/>
+        </div>
+    </div>
+   
+</div>
+<div class="searchAuthContent">
+    <div class="searchRow text-center">
+        Servis Sonucu
+    </div>
+    <div class="row">
+        <textarea id="serviceResult" class="form-control"  style="height:300px">
+
+        </textarea>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+
+        $(document).ready(function () {
+            ChangesearchType();
+
+            var getByIdRequest = '<?xml version="1.0" encoding="UTF-8"?><csw:GetRecordById xmlns:csw="http://www.opengis.net/cat/csw/2.0.2" service="CSW" ' +
+                'version="2.0.2" outputSchema = "http://www.isotc211.org/2005/gmd" > <csw:Id>{id}</csw:Id> <csw:ElementSetName>full</csw:ElementSetName ></csw:GetRecordById> ';
+
+            var getByKeywordRequest = '<csw:GetRecords maxRecords="10" outputFormat="application/xml" outputSchema="http://www.opengis.net/cat/csw/2.0.2" resultType="results" ' +
+                ' service="CSW" startPosition = "1" version = "2.0.2" xmlns = "http://www.opengis.net/cat/csw/2.0.2" xmlns:csw = "http://www.opengis.net/cat/csw/2.0.2" ' +
+                'xmlns:gmd = "http://www.isotc211.org/2005/gmd" xmlns:gml = "http://www.opengis.net/gml" xmlns:ogc = "http://www.opengis.net/ogc" ' +
+                'xmlns:rim = "urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0" > <csw:Query typeNames="gmd:MD_Metadata">    <csw:ElementSetName>full</csw:ElementSetName> ' +
+                '<csw:Constraint version="1.1.0" xmlns:csw="http://www.opengis.net/cat/csw/2.0.2">        <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">   ' +
+                '<ogc:PropertyIsLike><ogc:PropertyName>keyword</ogc:PropertyName> <ogc:Literal>{keyword}</ogc:Literal> </ogc:PropertyIsLike>  ' +
+            '</ogc:Filter>    </csw:Constraint></csw:Query></csw:GetRecords> ';
+
+
+            $(".searchType").on("change",function () {
+                ChangesearchType();
+            });
+
+             $("#btnSearch").on("click",function () {
+               //sorgulama ilemi
+                 var model = {};
+                 model.UserName = $("#txtUserName").val();
+                 model.Password = $("#txtPassword").val();
+                  model.ServiceUrl = $("#txtServiceUrl").val();
+                 var value = $(".searchType:checked").val();
+                 if (value == "searchByKeyword") {
+                     model.PostContent = getByKeywordRequest.replace("{keyword}", $("#txtKeyword").val().trim());
+                 }
+                 else if (value == "searchByID") {
+                     model.PostContent = getByIdRequest.replace("{id}", $("#txtMetadataId").val().trim());
+                 }
+                 else {
+                     alert("Lütfen önce sorgulama tipini seçin.");
+                     return;
+                 }
+                 $.ajax({
+                     type: "POST",
+                     url: "/Home/GetCswServiceResult",
+                     data: JSON.stringify(model),
+                     contentType: "application/json",
+                     dataType: "json",
+                     success: function (data) {
+                          $("#serviceResult").val(data.responseText);
+
+                     },
+                     error: function (errMsg) {
+                          $("#serviceResult").val(errMsg.responseText);
+                     },
+                     failure: function (errMsg) {
+                         alert(errMsg);
+                     }
+                 });
+            });
+
+            function ChangesearchType() {
+                var value = $(".searchType:checked").val();
+                $(".searchByKeyword").hide();
+                $(".searchByID").hide();
+
+                $("." + value).show();
+            }
+
+
+        });
+
+    </script>
+}
