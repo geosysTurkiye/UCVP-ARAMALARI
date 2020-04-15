@@ -37,7 +37,7 @@
 <div class="searchAuthContent">
     <div class="searchRow">
         <div class="searchTypeOption">
-            Kulanıcı Adı
+            Kulanıcı Adı (demo)
         </div>
         <div class="searchTypeOption">
             <input type="text" id="txtUserName" class="form-control" />
@@ -45,7 +45,7 @@
     </div>
     <div class="searchRow">
         <div class="searchTypeOption">
-            Şifre
+            Şifre (demo)
         </div>
         <div class="searchTypeOption">
             <input type="password" id="txtPassword" class="form-control" />
@@ -58,7 +58,8 @@
             CSW Servis Adresi
         </div>
         <div class="searchTypeOption">
-            <input type="text" id="txtServiceUrl" class="form-control" />
+            <input type="text" id="txtServiceUrl" value="https://servis.atlas.gov.tr/ATLASSIUMMETADATAAPISERVICES/api/CswService/csw
+" class="form-control" />
         </div>
     </div>
     
@@ -133,10 +134,12 @@
                      dataType: "json",
                      success: function (data) {
                           $("#serviceResult").val(data.responseText);
+						  alert('Sorgulama Sonucu Alındı');
 
                      },
                      error: function (errMsg) {
                           $("#serviceResult").val(errMsg.responseText);
+						  alert('Sorgulama Sonucu Alındı');
                      },
                      failure: function (errMsg) {
                          alert(errMsg);
